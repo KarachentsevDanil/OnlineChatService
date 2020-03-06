@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>SignalR Chat</title>
+</head>
+<body>
+    <div id="loginBlock">
+        Введите токен:<br />
+        <input id="token" type="text" />
+        <input id="loginBtn" type="button" value="Войти" />
+    </div><br />
+
+    <div id="header"></div><br />
+
+    <div id="inputForm">
+        <input type="text" id="message" />
+        <input type="text" id="chatId" />
+        <input type="button" id="sendBtn" value="Отправить" />
+    </div>
+    <div id="chatroom"></div>
+
+    <script src="js/@microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        let token;      // токен
+        const hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/signalr/private", { accessTokenFactory: () => token })
+            .build();
+
+        hubConnection.on("SendPrivateChatMessageHub", function (message) {
+            // создает элемент <p> для сообщения пользователя
+            let elem = document.createElement("p");
+            elem.appendChild(document.createTextNode("Friend - "));
+            elem.appendChild(document.createTextNode(message.text));
+
+            var firstElem = document.getElementById("chatroom").firstChild;
+            document.getElementById("chatroom").insertBefore(elem, firstElem);
+        });
+
+        // аутентификация
+        document.getElementById("loginBtn").addEventListener("click", function (e) {
+            token = document.getElementById("token").value;
+
+            hubConnection.start()       // начинаем соединение с хабом
+                .catch(err => {
+                    console.error(err.toString());
+                    document.getElementById("loginBtn").disabled = true;
+                    document.getElementById("sendBtn").disabled = true;
+                });
+        });
+        // отправка сообщения на сервер
+        document.getElementById("sendBtn").addEventListener("click", function (e) {
+            let message = document.getElementById("message").value;
+            let chatId = document.getElementById("chatId").value;
+            let data = { "Text": message, "ChatId": parseInt(chatId) };
+
+            hubConnection.invoke("SendPrivateMessageAsync", data);
+
+            // создает элемент <p> для сообщения пользователя
+            let elem = document.createElement("p");
+            elem.appendChild(document.createTextNode("You - "));
+            elem.appendChild(document.createTextNode(message));
+
+            var firstElem = document.getElementById("chatroom").firstChild;
+            document.getElementById("chatroom").insertBefore(elem, firstElem);
+        });
+    </script>
+</body>
+</html>
