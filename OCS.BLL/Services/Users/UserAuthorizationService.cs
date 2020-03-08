@@ -4,11 +4,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using OCS.BLL.Configurations;
 using OCS.BLL.DTOs.Users;
+using OCS.BLL.Exceptions.Users;
 using OCS.BLL.Extensions;
 using OCS.BLL.Services.Contracts.Users;
 using OCS.DAL.Entities.Users;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,26 +51,23 @@ namespace OCS.BLL.Services.Users
         {
             _logger.LogInformation("Login as user = {@User}", loginDto);
 
+            GetUserDto user = await _userService.GetByEmailAsync(loginDto.Email, ct);
+
+            if (user == null)
+            {
+                _logger.LogInformation("User with email {Email} not found", loginDto.Email);
+                throw new UserNotFoundException();
+            }
+
             SignInResult result = await _signInManager
                 .PasswordSignInAsync(loginDto.Email, loginDto.Password, loginDto.RememberMe, lockoutOnFailure: false);
 
             if (result.Succeeded)
             {
-                GetUserDto user = await _userService.GetByEmailAsync(loginDto.Email, ct);
-
-                string token = GenerateToken(user);
-
-                UserTokenDto tokenResponse = new UserTokenDto
-                {
-                    User = user,
-                    AccessToken = token,
-                    ExpiresIn = (int)TimeSpan.FromDays(_configuration.TokenExpirationPeriodInDay).TotalSeconds
-                };
-
-                return tokenResponse;
+                return GenerateToken(user);
             }
 
-            return null;
+            throw new UserLoginFailedException();
         }
 
         public async Task<GetUserDto> RegisterUserAsync(UserRegistrationDto registrationDto, CancellationToken ct = default)
@@ -76,6 +75,14 @@ namespace OCS.BLL.Services.Users
             _logger.LogInformation("Register new user = {@User}", registrationDto);
 
             User user = _mapper.Map<User>(registrationDto);
+            
+            GetUserDto dbUser = await _userService.GetByEmailAsync(registrationDto.Email, ct);
+
+            if (dbUser != null)
+            {
+                _logger.LogInformation("User with email {Email} already exists", registrationDto.Email);
+                throw new UserAlreadyExistsException();
+            }
 
             IdentityResult result = await _userManager.CreateAsync(user, registrationDto.Password);
 
@@ -84,10 +91,10 @@ namespace OCS.BLL.Services.Users
                 return _mapper.Map<GetUserDto>(user);
             }
 
-            return null;
+            throw new UserRegistrationFailedException(string.Join(" ", result.Errors.Select(t => t.Description)));
         }
 
-        private string GenerateToken(GetUserDto user)
+        private UserTokenDto GenerateToken(GetUserDto user)
         {
             Claim[] claims = new[]
             {
@@ -103,7 +110,16 @@ namespace OCS.BLL.Services.Users
                     SecurityAlgorithms.HmacSha256)),
                 new JwtPayload(claims));
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            string tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
+
+            UserTokenDto tokenResponse = new UserTokenDto
+            {
+                User = user,
+                AccessToken = tokenValue,
+                ExpiresIn = (int)TimeSpan.FromDays(_configuration.TokenExpirationPeriodInDay).TotalSeconds
+            };
+
+            return tokenResponse;
         }
     }
 }

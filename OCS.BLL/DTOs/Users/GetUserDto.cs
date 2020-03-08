@@ -1,4 +1,6 @@
-﻿namespace OCS.BLL.DTOs.Users
+﻿using System;
+
+namespace OCS.BLL.DTOs.Users
 {
     public class GetUserDto
     {
@@ -9,5 +11,9 @@
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
+
+        public bool IsOnline { get; set; }
+
+        public DateTime LastSeenAt { get; set; }
     }
 }

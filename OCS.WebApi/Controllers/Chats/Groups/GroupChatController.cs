@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OCS.BLL.DTOs.Chats.Group;
+using OCS.BLL.Exceptions.Chats;
+using OCS.BLL.Exceptions.Users;
 using OCS.BLL.Services.Contracts.Chats.Group;
 using OCS.WebApi.Extensions;
 using System.Threading.Tasks;
@@ -18,6 +20,42 @@ namespace OCS.WebApi.Controllers.Chats.Groups
         public GroupChatController(IGroupChatService privateChatService)
         {
             _groupChatService = privateChatService;
+        }
+
+        /// <summary>
+        /// Add user to group chat
+        /// </summary>
+        /// <param name="userDto">
+        /// <see cref="AddUserToGroupChatDto"/>
+        /// </param>
+        /// <response code="400">If data in the request body is wrong</response>
+        [HttpPost]
+        public async Task<IActionResult> AddUserToGroupChatAsync([FromBody] AddUserToGroupChatDto userDto)
+        {
+            try
+            {
+                userDto.AddedByUserId = User.GetUserId();
+
+                await _groupChatService.AddUserToGroupChatAsync(userDto);
+
+                return Ok();
+            }
+            catch (UserNotFoundException)
+            {
+                return BadRequest();
+            }
+            catch (UserAlreadyInGroupChatException)
+            {
+                return BadRequest();
+            }
+            catch (ChatNotFoundException)
+            {
+                return BadRequest();
+            }
+            catch (AddUserActionForbiddenException)
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>

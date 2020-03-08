@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
 using OCS.BLL.DTOs.Chats.Private;
+using OCS.BLL.Exceptions.Chats;
 using OCS.BLL.Services.Contracts.Chats.Private;
 using OCS.DAL.Entities.Chats;
 using OCS.DAL.UnitOfWorks.Contracts;
@@ -9,6 +10,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using OCS.BLL.Exceptions.Users;
+using OCS.DAL.Entities.Users;
 
 namespace OCS.BLL.Services.Chats.Private
 {
@@ -30,6 +33,8 @@ namespace OCS.BLL.Services.Chats.Private
         public async Task<GetPrivateChatDto> CreatePrivateChatAsync(CreatePrivateChatDto chatDto, CancellationToken ct = default)
         {
             _logger.LogInformation("Create private chat {PrivateChat}", chatDto);
+
+            await ValidatePrivateChatAsync(chatDto, ct);
 
             PrivateChat chat = _mapper.Map<PrivateChat>(chatDto);
 
@@ -58,6 +63,32 @@ namespace OCS.BLL.Services.Chats.Private
             PrivateChat chat = await _unitOfWork.PrivateChatRepository.GetAsync(id, ct);
 
             return _mapper.Map<GetPrivateChatDto>(chat);
+        }
+
+        private async Task ValidatePrivateChatAsync(CreatePrivateChatDto chatDto, CancellationToken ct)
+        {
+            User user =
+                await _unitOfWork.UserRepository.GetAsync(chatDto.ContactId, ct);
+
+            if (user == null)
+            {
+                _logger.LogWarning("User {UserId} not found", chatDto.ContactId);
+
+                throw new UserNotFoundException();
+            }
+
+            PrivateChat dbChat =
+                await _unitOfWork.PrivateChatRepository.GetChatByUserIdAsync(chatDto.UserId, chatDto.ContactId, ct);
+
+            if (dbChat != null)
+            {
+                _logger.LogWarning(
+                    "User {UserId} already has private chat with Contact {ContactId}",
+                    chatDto.UserId,
+                    chatDto.ContactId);
+
+                throw new PrivateChatAlreadyExistException();
+            }
         }
     }
 }

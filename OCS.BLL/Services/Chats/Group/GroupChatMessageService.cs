@@ -11,6 +11,7 @@ using OCS.DAL.UnitOfWorks.Contracts;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using OCS.BLL.Exceptions.Chats;
 
 namespace OCS.BLL.Services.Chats.Group
 {
@@ -32,6 +33,14 @@ namespace OCS.BLL.Services.Chats.Group
         public async Task<GetGroupChatMessageDto> AddMessageAsync(CreateGroupChatMessageDto messageDto, CancellationToken ct = default)
         {
             _logger.LogInformation("Create group chat message {GroupChatMessage}", messageDto);
+
+            GroupChat chat = await _unitOfWork.GroupChatRepository.GetAsync(messageDto.ChatId, ct);
+
+            if (chat == null)
+            {
+                _logger.LogWarning("Group chat with id {GroupChatId} not found", messageDto.ChatId);
+                throw new ChatNotFoundException();
+            }
 
             GroupChatMessage message = _mapper.Map<GroupChatMessage>(messageDto);
 

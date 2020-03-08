@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
 using OCS.BLL.DTOs.Users;
 using OCS.BLL.Services.Contracts.Users;
@@ -50,6 +51,29 @@ namespace OCS.BLL.Services.Users
                 _logger.LogInformation("User with email {Email} not found", email);
                 return null;
             }
+
+            return _mapper.Map<GetUserDto>(user);
+        }
+
+        public async Task<GetUserDto> SetUserOnlineStatusAsync(SetUserOnlineDto userOnlineDto, CancellationToken ct = default)
+        {
+            _logger.LogInformation(
+                "Set online status to {OnlineStatus} for user {UserId}", 
+                userOnlineDto.IsOnline, 
+                userOnlineDto.UserId);
+
+            User user = await _unitOfWork.UserRepository.GetAsync(userOnlineDto.UserId, ct);
+
+            user.IsOnline = userOnlineDto.IsOnline;
+
+            if (!user.IsOnline)
+            {
+                user.LastSeenAt = DateTime.UtcNow;
+            }
+
+            _unitOfWork.UserRepository.Update(user);
+
+            await _unitOfWork.CommitAsync(ct);
 
             return _mapper.Map<GetUserDto>(user);
         }

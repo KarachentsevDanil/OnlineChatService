@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OCS.BLL.DTOs.Chats.Private;
+using OCS.BLL.Exceptions.Chats;
+using OCS.BLL.Exceptions.Users;
 using OCS.BLL.Services.Contracts.Chats.Private;
 using OCS.WebApi.Extensions;
 using System.Threading.Tasks;
@@ -35,11 +37,22 @@ namespace OCS.WebApi.Controllers.Chats.Privates
         [ProducesResponseType(400)]
         public async Task<IActionResult> CreateChatAsync([FromBody] CreatePrivateChatDto privateChatDto)
         {
-            privateChatDto.UserId = User.GetUserId();
+            try
+            {
+                privateChatDto.UserId = User.GetUserId();
 
-            GetPrivateChatDto chat = await _privateChatService.CreatePrivateChatAsync(privateChatDto);
+                GetPrivateChatDto chat = await _privateChatService.CreatePrivateChatAsync(privateChatDto);
 
-            return Ok(chat);
+                return Ok(chat);
+            }
+            catch (UserNotFoundException)
+            {
+                return BadRequest();
+            }
+            catch (PrivateChatAlreadyExistException)
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>

@@ -31,7 +31,8 @@ namespace OCS.BLL.Configurations.MapperProfiles
             CreateMap<AddUserToGroupChatDto, UserGroupChat>()
                 .ForMember(dest => dest.GroupChatId, opt => opt.MapFrom(p => p.ChatId));
 
-            CreateMap<CreateGroupChatDto, GroupChat>();
+            CreateMap<CreateGroupChatDto, GroupChat>()
+                .ForMember(t=> t.OwnerId, opt => opt.MapFrom(p => p.UserId));
 
             CreateMap<CreateGroupChatMessageDto, GroupChatMessage>()
                 .ForMember(dest => dest.CreatedByUserId, opt => opt.MapFrom(p => p.UserId));

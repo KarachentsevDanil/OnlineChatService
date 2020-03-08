@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using OCS.BLL.DTOs.Chats.Private;
 using OCS.BLL.DTOs.Chats.Queries;
 using OCS.BLL.DTOs.Pagination;
+using OCS.BLL.Exceptions.Chats;
 using OCS.BLL.Services.Contracts.Chats.Private;
 using OCS.DAL.Entities.Chats;
 using OCS.DAL.Entities.Chats.Queries;
@@ -32,6 +33,14 @@ namespace OCS.BLL.Services.Chats.Private
         public async Task<GetPrivateChatMessageDto> AddMessageAsync(CreatePrivateChatMessageDto messageDto, CancellationToken ct = default)
         {
             _logger.LogInformation("Create private chat message {PrivateChatMessage}", messageDto);
+
+            PrivateChat chat = await _unitOfWork.PrivateChatRepository.GetAsync(messageDto.ChatId, ct);
+
+            if (chat == null)
+            {
+                _logger.LogWarning("Private chat with id {PrivateChatId} not found", messageDto.ChatId);
+                throw new ChatNotFoundException();
+            }
 
             PrivateChatMessage message = _mapper.Map<PrivateChatMessage>(messageDto);
 

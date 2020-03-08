@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OCS.BLL.DTOs.Users;
+using OCS.BLL.Exceptions.Users;
 using OCS.BLL.Services.Contracts.Users;
+using OCS.WebApi.Extensions;
 using System.Threading.Tasks;
 
 namespace OCS.WebApi.Controllers.Users
@@ -11,9 +13,12 @@ namespace OCS.WebApi.Controllers.Users
     {
         private readonly IUserAuthorizationService _authorizationService;
 
-        public UserController(IUserAuthorizationService authorizationService)
+        private readonly IUserService _userService;
+
+        public UserController(IUserAuthorizationService authorizationService, IUserService userService)
         {
             _authorizationService = authorizationService;
+            _userService = userService;
         }
 
         /// <summary>
@@ -34,14 +39,33 @@ namespace OCS.WebApi.Controllers.Users
         [ProducesResponseType(401)]
         public async Task<IActionResult> LoginAsync([FromBody] UserLoginDto loginDto)
         {
-            var result = await _authorizationService.LoginUserAsync(loginDto);
+            try
+            {
+                var result = await _authorizationService.LoginUserAsync(loginDto);
 
-            if (result == null)
+                if (result == null)
+                {
+                    return Unauthorized();
+                }
+
+                SetUserOnlineDto onlineStatus = new SetUserOnlineDto
+                {
+                    IsOnline = true,
+                    UserId = result.User.Id
+                };
+
+                await _userService.SetUserOnlineStatusAsync(onlineStatus);
+
+                return Ok(result);
+            }
+            catch (UserNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (UserLoginFailedException)
             {
                 return Unauthorized();
             }
-
-            return Ok(result);
         }
 
         /// <summary>
@@ -61,14 +85,43 @@ namespace OCS.WebApi.Controllers.Users
         [ProducesResponseType(400)]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationDto userDto)
         {
-            var result = await _authorizationService.RegisterUserAsync(userDto);
-
-            if (result == null)
+            try
             {
-                return BadRequest("User already exists");
-            }
+                var result = await _authorizationService.RegisterUserAsync(userDto);
 
-            return Json(result);
+                if (result == null)
+                {
+                    return BadRequest("User already exists");
+                }
+
+                return Json(result);
+            }
+            catch (UserAlreadyExistsException)
+            {
+                return BadRequest();
+            }
+            catch (UserRegistrationFailedException)
+            {
+                return Unauthorized();
+            }
+        }
+
+        /// <summary>
+        /// Logout
+        /// </summary>
+        [HttpPost]
+        [Route("logout")]
+        public async Task<IActionResult> LogoutAsync()
+        {
+            SetUserOnlineDto onlineStatus = new SetUserOnlineDto
+            {
+                IsOnline = false,
+                UserId = User.GetUserId()
+            };
+
+            await _userService.SetUserOnlineStatusAsync(onlineStatus);
+
+            return NoContent();
         }
     }
 }

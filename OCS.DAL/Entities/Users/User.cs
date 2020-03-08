@@ -17,11 +17,17 @@ namespace OCS.DAL.Entities.Users
         public DateTime UpdatedAt { get; set; }
 
         public bool IsDeleted { get; set; }
+        
+        public bool IsOnline { get; set; }
+        
+        public DateTime LastSeenAt { get; set; }
 
         public ICollection<UserContact> Contacts { get; set; }
 
         public ICollection<PrivateChat> PrivateChats { get; set; }
 
         public ICollection<UserGroupChat> GroupChats { get; set; }
+
+        public ICollection<GroupChat> OwnedGroups { get; set; }
     }
 }

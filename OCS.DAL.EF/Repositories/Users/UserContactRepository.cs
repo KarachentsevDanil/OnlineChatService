@@ -23,5 +23,10 @@ namespace OCS.DAL.EF.Repositories.Users
                 .Where(t => t.UserId == userId)
                 .ToListAsync(ct);
         }
+
+        public async Task<UserContact> GetUserContactAsync(string userId, string contactId, CancellationToken ct)
+        {
+            return await DbContext.UserContacts.FirstOrDefaultAsync(t => t.UserId == userId && t.ContactId == contactId, ct);
+        }
     }
 }

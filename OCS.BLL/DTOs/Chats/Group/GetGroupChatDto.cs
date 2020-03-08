@@ -7,6 +7,8 @@ namespace OCS.BLL.DTOs.Chats.Group
     {
         public int Id { get; set; }
 
+        public GetUserDto Owner { get; set; }
+
         public IImmutableList<GetUserDto> Users { get; set; }
     }
 }

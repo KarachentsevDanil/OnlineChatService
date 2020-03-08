@@ -12,6 +12,10 @@ namespace OCS.DAL.EF.Context.Mappings.Chats
 
             builder.Property(p => p.Name).HasMaxLength(250).IsRequired();
 
+            builder.HasOne(p => p.Owner)
+                .WithMany(p => p.OwnedGroups)
+                .HasForeignKey(p => p.OwnerId);
+
             builder.HasQueryFilter(t => !t.IsDeleted);
 
             builder.ToTable("GroupChats", "chat");

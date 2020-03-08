@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OCS.BLL.DTOs.Users;
+using OCS.BLL.Exceptions.Users;
 using OCS.BLL.Services.Contracts.Users;
 using OCS.WebApi.Extensions;
 using System.Threading.Tasks;
@@ -35,11 +36,22 @@ namespace OCS.WebApi.Controllers.Users
         [ProducesResponseType(400)]
         public async Task<IActionResult> AddNewContactAsync([FromBody] AddUserToContactDto userContact)
         {
-            userContact.UserId = User.GetUserId();
+            try
+            {
+                userContact.UserId = User.GetUserId();
 
-            GetUserContactDto result = await _userContactService.AddUserToContactAsync(userContact);
+                GetUserContactDto result = await _userContactService.AddUserToContactAsync(userContact);
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (UserNotFoundException)
+            {
+                return BadRequest();
+            }
+            catch (UserAlreadyExistsException)
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>

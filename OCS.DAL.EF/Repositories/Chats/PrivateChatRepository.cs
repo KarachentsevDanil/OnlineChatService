@@ -31,5 +31,14 @@ namespace OCS.DAL.EF.Repositories.Chats
                 .Where(t => t.CreatedByUserId == userId || t.InvitedUserId == userId)
                 .ToListAsync(ct);
         }
+
+        public async Task<PrivateChat> GetChatByUserIdAsync(string userId, string invitedUserId, CancellationToken ct)
+        {
+            return await DbContext.PrivateChats
+                .FirstOrDefaultAsync(
+                    t => (t.CreatedByUserId == userId && t.InvitedUserId == invitedUserId) ||
+                         (t.InvitedUserId == userId && t.CreatedByUserId == invitedUserId),
+                    ct);
+        }
     }
 }
