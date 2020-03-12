@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using OCS.BLL.DTOs.Chats.Group;
 using OCS.BLL.DTOs.Chats.Private;
+using OCS.BLL.DTOs.Chats.Queries;
 using OCS.BLL.DTOs.Users;
 using OCS.DAL.Entities.Chats;
+using OCS.DAL.Entities.Chats.Queries;
 using OCS.DAL.Entities.Users;
+using OCS.DAL.Models;
 
 namespace OCS.BLL.Configurations.MapperProfiles
 {
@@ -27,6 +30,8 @@ namespace OCS.BLL.Configurations.MapperProfiles
             CreateMap<GroupChat, GetGroupChatDto>();
 
             CreateMap<GroupChatMessage, GetGroupChatMessageDto>();
+
+            CreateMap<GetPagedMessagesQueryDto, GetPagedMessagesQuery>();
 
             CreateMap<AddUserToGroupChatDto, UserGroupChat>()
                 .ForMember(dest => dest.GroupChatId, opt => opt.MapFrom(p => p.ChatId));

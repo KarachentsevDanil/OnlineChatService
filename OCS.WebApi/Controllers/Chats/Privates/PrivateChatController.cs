@@ -7,6 +7,7 @@ using OCS.BLL.Exceptions.Users;
 using OCS.BLL.Services.Contracts.Chats.Private;
 using OCS.WebApi.Extensions;
 using System.Threading.Tasks;
+using OCS.BLL.DTOs.Chats.Queries;
 
 namespace OCS.WebApi.Controllers.Chats.Privates
 {
@@ -17,9 +18,12 @@ namespace OCS.WebApi.Controllers.Chats.Privates
     {
         private readonly IPrivateChatService _privateChatService;
 
-        public PrivateChatController(IPrivateChatService privateChatService)
+        private readonly IPrivateChatMessageService _privateChatMessageService;
+
+        public PrivateChatController(IPrivateChatService privateChatService, IPrivateChatMessageService privateChatMessageService)
         {
             _privateChatService = privateChatService;
+            _privateChatMessageService = privateChatMessageService;
         }
 
         /// <summary>
@@ -67,6 +71,20 @@ namespace OCS.WebApi.Controllers.Chats.Privates
         {
             var chats = await _privateChatService.GetUserPrivateChatsAsync(User.GetUserId());
             return Ok(chats);
+        }
+
+        /// <summary>
+        /// Get private chat messages
+        /// </summary>
+        /// <returns>
+        /// <see cref="GetPrivateChatMessageDto"/>
+        /// </returns>
+        [HttpGet("messages")]
+        [ProducesResponseType(typeof(GetPrivateChatMessageDto), 200)]
+        public async Task<IActionResult> GetUserChatsAsync([FromQuery] GetPagedMessagesQueryDto query)
+        {
+            var messages = await _privateChatMessageService.GetMessagesAsync(query);
+            return Ok(messages);
         }
     }
 }

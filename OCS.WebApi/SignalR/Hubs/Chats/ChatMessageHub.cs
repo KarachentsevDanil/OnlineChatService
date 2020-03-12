@@ -60,11 +60,7 @@ namespace OCS.WebApi.SignalR.Hubs.Chats
 
             GetPrivateChatDto chat = await _privateChatService.GetChatByIdAsync(model.ChatId, ct);
 
-            string sendTo = Context.UserIdentifier == chat.CreatedByUser.Id
-                ? chat.InvitedUser.Id
-                : chat.CreatedByUser.Id;
-
-            await Clients.User(sendTo).SendAsync(nameof(ChatMessageHub), message, cancellationToken: ct);
+            await Clients.Users(chat.InvitedUser.Id, chat.CreatedByUser.Id).SendAsync(nameof(ChatMessageHub), message, cancellationToken: ct);
         }
 
         private async Task ExecuteSendGroupMessageAsync(CreateGroupChatMessageDto model, CancellationToken ct = default)

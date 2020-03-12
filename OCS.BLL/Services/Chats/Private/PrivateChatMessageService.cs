@@ -10,6 +10,9 @@ using OCS.DAL.Entities.Chats.Queries;
 using OCS.DAL.Models;
 using OCS.DAL.UnitOfWorks.Contracts;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -62,7 +65,10 @@ namespace OCS.BLL.Services.Chats.Private
             PagedItemResultModel<PrivateChatMessage> result =
                 await _unitOfWork.PrivateChatMessageRepository.GetMessagesAsync(query, ct);
 
-            return _mapper.Map<PagedItemResultDto<GetPrivateChatMessageDto>>(result);
+            IImmutableList<GetPrivateChatMessageDto> list =
+                _mapper.Map<ICollection<GetPrivateChatMessageDto>>(result.Items).ToImmutableList();
+
+            return new PagedItemResultDto<GetPrivateChatMessageDto>(list, result.TotalCount);
         }
     }
 }

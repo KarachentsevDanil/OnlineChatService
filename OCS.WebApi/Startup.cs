@@ -23,6 +23,13 @@ namespace OCS.WebApi
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(o => o.AddPolicy("All", b =>
+                b.WithOrigins("http://localhost:1570", "https://localhost:5005", "http://localhost:5004")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+            ));
+
             services.AddControllers(options =>
             {
                 options.Filters.Add(typeof(ValidationFilterAttribute));
@@ -34,10 +41,8 @@ namespace OCS.WebApi
             });
 
             services.AddSwagger();
-            
-            services.AddSignalR();
 
-            services.AddCors();
+            services.AddSignalR();
 
             var authConfig = services.AddAuthenticationConfiguration(Configuration);
 
@@ -66,6 +71,8 @@ namespace OCS.WebApi
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors("All");
+
             app.UseFileServer();
 
             app.UseHttpsRedirection();
@@ -80,8 +87,6 @@ namespace OCS.WebApi
             });
 
             app.UseAuthorization();
-
-            app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
             app.UseEndpoints(endpoints =>
             {
