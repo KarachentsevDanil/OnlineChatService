@@ -1,7 +1,7 @@
 import axios from "axios";
 import router from "../router";
 
-const baseApiUrl = "https://localhost:5005";
+const baseApiUrl = "https://dkarachatapi.azurewebsites.net";
 
 axios.interceptors.response.use(
     response => {

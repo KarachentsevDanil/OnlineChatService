@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using OCS.DAL.Entities.Views.Chats;
+using OCS.DAL.Queries.Chats;
+using EntityFramework = Microsoft.EntityFrameworkCore.EF;
 
 namespace OCS.DAL.EF.Repositories.Chats
 {
@@ -39,6 +42,21 @@ namespace OCS.DAL.EF.Repositories.Chats
                     t => (t.CreatedByUserId == userId && t.InvitedUserId == invitedUserId) ||
                          (t.InvitedUserId == userId && t.CreatedByUserId == invitedUserId),
                     ct);
+        }
+
+        public async Task<ICollection<PrivateChatView>> GetPrivateChatsAsync(GetPrivateChatsQuery queryParams, CancellationToken ct)
+        {
+            IQueryable<PrivateChatView> query = DbContext.PrivateChatsView
+                .Where(t => t.CreatedByUserId == queryParams.UserId || t.InvitedUserId == queryParams.UserId);
+
+            if (!string.IsNullOrEmpty(queryParams.UserTerm))
+            {
+                query = query.Where(t =>
+                    EntityFramework.Functions.Like(t.CreatedByUserFullName, $"{queryParams.UserTerm}") ||
+                    EntityFramework.Functions.Like(t.InvitedUserFullName, $"{queryParams.UserTerm}"));
+            }
+
+            return await query.OrderByDescending(t => t.LastMessageCreatedAt).ToListAsync(ct);
         }
     }
 }

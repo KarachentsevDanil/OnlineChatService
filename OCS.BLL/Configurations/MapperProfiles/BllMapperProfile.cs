@@ -6,7 +6,9 @@ using OCS.BLL.DTOs.Users;
 using OCS.DAL.Entities.Chats;
 using OCS.DAL.Entities.Chats.Queries;
 using OCS.DAL.Entities.Users;
-using OCS.DAL.Models;
+using OCS.DAL.Entities.Views.Chats;
+using OCS.DAL.Queries.Chats;
+using OCS.DAL.Queries.Users;
 
 namespace OCS.BLL.Configurations.MapperProfiles
 {
@@ -26,6 +28,12 @@ namespace OCS.BLL.Configurations.MapperProfiles
             CreateMap<PrivateChat, GetPrivateChatDto>();
 
             CreateMap<PrivateChatMessage, GetPrivateChatMessageDto>();
+
+            CreateMap<PrivateChatView, GetPrivateChatViewDto>();
+
+            CreateMap<GetPrivateChatsQueryDto, GetPrivateChatsQuery>();
+
+            CreateMap<GetUsersQueryDto, GetUsersQuery>();
 
             CreateMap<GroupChat, GetGroupChatDto>();
 

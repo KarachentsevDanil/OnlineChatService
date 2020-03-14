@@ -1,4 +1,4 @@
-import { HubConnectionBuilder, LogLevel } from '@aspnet/signalr'
+import * as signalR from '@aspnet/signalr'
 
 export default {
   install (Vue) {
@@ -11,11 +11,17 @@ export default {
     let connection = null
     let startedPromise = null
     let manuallyClosed = false
+    let isOpened = false
 
-    Vue.prototype.startSignalR = (jwtToken) => {
-      connection = new HubConnectionBuilder()
+    Vue.prototype.startSignalR = async (jwtToken) => {
+      console.log("invoked");
+      if(isOpened){
+        return;
+      }
+
+      connection = new signalR.HubConnectionBuilder()
         .withUrl(
-          'https://localhost:5005/signalr/chats/',
+          'https://dkarachatapi.azurewebsites.net/signalr/chats/',
           { accessTokenFactory: () => jwtToken }
         )
         .build()
@@ -28,23 +34,22 @@ export default {
       // You need to call connection.start() to establish the connection but the client wont handle reconnecting for you!
       // Docs recommend listening onclose and handling it there.
       // This is the simplest of the strategies
-      function start () {
-        startedPromise = connection.start()
-          .catch(err => {
-            console.error('Failed to connect with hub', err);
-          }).then(function () {
-            console.log("connected");
-          });
-
-        return startedPromise
-      }
-      connection.onclose(() => {
-        if (!manuallyClosed) start()
-      })
+      async function start() {
+        try {
+            console.log("started");
+            await connection.start();
+            console.log("connected", connection.state);
+        } catch (err) {
+            console.log(err);
+        }
+      };
 
       // Start everything
       manuallyClosed = false
-      start()
+      isOpened = true
+      setTimeout(async ()=>{
+        await start()
+      }, 1000);
     };
 
     Vue.prototype.stopSignalR = () => {
@@ -59,11 +64,11 @@ export default {
     // Provide methods for components to send messages back to server
     // Make sure no invocation happens until the connection is established
     chatHub.sendMessage = (message) => {
-      if (!startedPromise) return
+      if(!isOpened){
+        connection.start();
+      }
 
-      return startedPromise
-        .then(() => connection.invoke('SendPrivateMessageAsync', message))
-        .catch(console.error)
+      return connection.invoke('SendPrivateMessageAsync', message);
     }
   }
 }

@@ -1,13 +1,13 @@
 <template>
       <div class="content-wrapper">
         <!-- Content area -->
-        <div class="content chat-border" v-if="contact">
+        <div class="content chat-border" v-if="chat">
           <!-- Basic layout -->
           <div class="panel panel-white">
             <div class="panel-heading">
               <h6 class="panel-title">
-                {{contact.contact.firstName}} {{contact.contact.lastName}}
-                <span v-if="contact.contact.isOnline" class="label label-success position-right">Online</span>
+                {{getContact(chat).fullName}}
+                <span v-if="getContact(chat).isOnline" class="label label-success position-right">Online</span>
                 <span v-else class="label label-danger position-right">Offline</span>
               </h6>
             </div>
@@ -19,7 +19,7 @@
                   v-for="message in messages"
                   :key="message.Id"
                 >
-                  <div class="media-left" v-if="message.createdByUser.id != contact.contact.id">
+                  <div class="media-left" v-if="message.createdByUser.id != getUser.id">
                     <span class="btn bg-pink-400 btn-rounded btn-icon btn-xs legitRipple">
                       <span class="letter-icon">{{getNameIncon(message.createdByUser)}}</span>
                     </span>
@@ -28,7 +28,7 @@
                     <div class="media-content">{{message.text}}</div>
                     <span class="media-annotation display-block mt-10">
                       {{message.createdAt | formatDate}}
-                      <a href="#" v-if="message.createdByUser.id != contact.contact.id">
+                      <a href="#" v-if="message.createdByUser.id != getUser.id">
                         <i class="icon-bubbles2 position-right text-muted"></i>
                       </a>
                       <a href="#" v-else>
@@ -36,7 +36,7 @@
                       </a>
                     </span>
                   </div>
-                  <div class="media-right" v-if="message.createdByUser.id == contact.contact.id">
+                  <div class="media-right" v-if="message.createdByUser.id == getUser.id">
                     <span class="btn bg-pink-400 btn-rounded btn-icon btn-xs legitRipple">
                       <span class="letter-icon">{{getNameIncon(message.createdByUser)}}</span>
                     </span>
@@ -76,6 +76,13 @@
 <script>
 import * as transactionService from "../../api/contact-service";
 
+import * as authGetters from "../../../auth/store/types/getter-types";
+import * as authResources from "../../../auth/store/resources";
+
+import * as mainStoreGetters from "../../../../store/types/action-types";
+
+import { mapGetters } from "vuex";
+
 import Vue from "Vue";
 
 export default {
@@ -84,15 +91,14 @@ export default {
     text: ""
   }),
   props: {
-    contact:Object,
     chat:Object,
     newMessage:Object,
     sendMessage: Function
   },
   watch: {
-    contact: {
+    chat: {
       async handler() {
-        console.log("Event triggered:", this.contact, this.chat);
+        console.log("Event triggered:", this.chat);
         await this.loadMessages();
       },
       deep: true
@@ -100,20 +106,45 @@ export default {
     newMessage: {
       handler() {
         console.log("New message was added:", this.newMessage);
-        if(this.newMessage.chatId == this.chatId){
+        if(this.newMessage.chat.id == this.chat.id){
           this.messages.push(this.newMessage);
-
           setTimeout(()=>{
-          $('ul.chat-list').animate({ scrollTop: $('ul.chat-list').prop("scrollHeight")}, 1000);
+          $('ul.chat-list').animate({ scrollTop: $('ul.chat-list').prop("scrollHeight")}, 100);
         }, 100);
         }
       },
       deep: true
     }
   },
+  computed: {
+    ...mapGetters({
+      getUser: authResources.AUTH_STORE_NAMESPACE.concat(
+        authGetters.GET_USER_GETTER
+      ),
+      getToken: authResources.AUTH_STORE_NAMESPACE.concat(
+        authGetters.GET_TOKEN_GETTER
+      ),
+      blockUiOptions: "getLoaderOptions"
+    })
+  },
   methods: {
     getStyleForCurrentUser(userId) {
-      return this.contact.contact.id == userId ? "media reversed" : "media";
+      return this.getUser.id == userId ? "media reversed" : "media";
+    },
+    getContact(contact){
+      if(contact.createdByUserId != this.getUser.id){
+        return {
+          fullName: contact.createdByUserFullName,
+          email: contact.createdByUserEmail,
+          isOnline: contact.createdByUserIsOnline
+        }
+      }else{
+        return {
+          fullName: contact.invitedUserFullName,
+          email: contact.invitedUserEmail,
+          isOnline: contact.invitedUserIsOnline
+        }
+      }
     },
     getNameIncon(user) {
       return user.firstName[0] + user.lastName[0];
@@ -128,7 +159,7 @@ export default {
       this.text = "";
     },
     async loadMessages() {
-      if(this.contact){
+      if(this.chat){
         let query = {
           chatId: this.chat.id,
           skip: 0,
@@ -140,7 +171,7 @@ export default {
 
         console.log("Messages:", this.messages);
         setTimeout(()=>{
-          $('ul.chat-list').animate({ scrollTop: $('ul.chat-list').prop("scrollHeight")}, 1000);
+          $('ul.chat-list').animate({ scrollTop: $('ul.chat-list').prop("scrollHeight")}, 100);
         }, 100);
       }
     }

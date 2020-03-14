@@ -39,7 +39,6 @@ import "../../assets/limitless/css/components.css";
 import "../../assets/limitless/css/colors.css";
 import "../../assets/limitless/css/engage.css";
 
-import "../../assets/limitless/js/pace.js";
 import "bootstrap/dist/js/bootstrap.js";
 import "../../assets/limitless/js/app.js";
 import "../../assets/limitless/js/ripple.min.js";

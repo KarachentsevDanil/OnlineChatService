@@ -4,6 +4,8 @@ using OCS.BLL.Exceptions.Users;
 using OCS.BLL.Services.Contracts.Users;
 using OCS.WebApi.Extensions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OCS.WebApi.Controllers.Users
 {
@@ -109,6 +111,7 @@ namespace OCS.WebApi.Controllers.Users
         /// <summary>
         /// Logout
         /// </summary>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
         [Route("logout")]
         public async Task<IActionResult> LogoutAsync()
@@ -122,6 +125,26 @@ namespace OCS.WebApi.Controllers.Users
             await _userService.SetUserOnlineStatusAsync(onlineStatus);
 
             return NoContent();
+        }
+
+        /// <summary>
+        /// Get users by query
+        /// </summary>
+        /// <param name="query">
+        /// <see cref="GetUsersQueryDto"/>
+        /// </param>
+        /// <returns>
+        /// <see cref="GetUserDto "/>
+        /// </returns>  
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet]
+        [Route("query")]
+        [ProducesResponseType(typeof(GetUserDto), 200)]
+        public async Task<IActionResult> RegisterAsync([FromQuery] GetUsersQueryDto query)
+        {
+            query.UserId = User.GetUserId();
+            var result = await _userService.GetByQueryAsync(query);
+            return Json(result);
         }
     }
 }

@@ -66,10 +66,13 @@ namespace OCS.WebApi.Controllers.Chats.Privates
         /// <see cref="GetPrivateChatDto"/>
         /// </returns>
         [HttpGet]
-        [ProducesResponseType(typeof(GetPrivateChatDto), 200)]
-        public async Task<IActionResult> GetUserChatsAsync()
+        [ProducesResponseType(typeof(GetPrivateChatViewDto), 200)]
+        public async Task<IActionResult> GetUserChatsAsync([FromQuery] GetPrivateChatsQueryDto query)
         {
-            var chats = await _privateChatService.GetUserPrivateChatsAsync(User.GetUserId());
+            query.UserId = User.GetUserId();
+
+            var chats = await _privateChatService.GetUserPrivateChatsViewAsync(query);
+
             return Ok(chats);
         }
 

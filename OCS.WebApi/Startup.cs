@@ -1,6 +1,7 @@
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -91,7 +92,11 @@ namespace OCS.WebApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<ChatMessageHub>("/signalr/chats");
+                endpoints.MapHub<ChatMessageHub>("/signalr/chats", options =>
+                {
+                    options.Transports = HttpTransportType.WebSockets |
+                                         HttpTransportType.LongPolling;
+                });
             });
         }
     }

@@ -29,7 +29,7 @@ namespace OCS.WebApi.Controllers.Chats.Groups
         /// <see cref="AddUserToGroupChatDto"/>
         /// </param>
         /// <response code="400">If data in the request body is wrong</response>
-        [HttpPost]
+        [HttpPost("addnewmember")]
         public async Task<IActionResult> AddUserToGroupChatAsync([FromBody] AddUserToGroupChatDto userDto)
         {
             try

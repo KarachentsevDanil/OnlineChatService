@@ -11,6 +11,8 @@ namespace OCS.BLL.Services.Contracts.Chats.Private
 
         Task<IImmutableList<GetPrivateChatDto>> GetUserPrivateChatsAsync(string userId, CancellationToken ct = default);
 
+        Task<IImmutableList<GetPrivateChatViewDto>> GetUserPrivateChatsViewAsync(GetPrivateChatsQueryDto query, CancellationToken ct = default);
+
         Task<GetPrivateChatDto> GetChatByIdAsync(int id, CancellationToken ct = default);
     }
 }

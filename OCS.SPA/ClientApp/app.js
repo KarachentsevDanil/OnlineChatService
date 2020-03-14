@@ -13,10 +13,20 @@ import grid from './pages/plugins/datatable/datatable';
 import moment from 'moment'
 import ChatHub from './signalR/chat-hub';
 
+window.paceOptions = {
+    ajax: false,
+    restartOnRequestAfter: false,
+};
+
 Vue.filter('formatDate', function(value) {
   if (value) {
     return moment(String(value)).format('MM/DD/YYYY hh:mm')
   }});
+
+Vue.filter('fullNameIcon', function(value) {
+    let items = value.split(" ");
+    return items[0][0] + items[1][0];
+  });
 
 import App from './pages/layout/app-root'
 

@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20200314083605_AddPrivateChatView.cs" />
+    <Compile Remove="Migrations\20200314083605_AddPrivateChatView.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\OCS.DAL.EF\OCS.DAL.EF.csproj" />
   </ItemGroup>
 

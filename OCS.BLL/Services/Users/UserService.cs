@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using OCS.BLL.DTOs.Users;
@@ -7,6 +10,7 @@ using OCS.DAL.Entities.Users;
 using OCS.DAL.UnitOfWorks.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
+using OCS.DAL.Queries.Users;
 
 namespace OCS.BLL.Services.Users
 {
@@ -23,6 +27,22 @@ namespace OCS.BLL.Services.Users
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+        }
+
+        public async Task<IImmutableList<GetUserDto>> GetByQueryAsync(GetUsersQueryDto query, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Get users by query {@UserQuery}", query);
+
+            GetUsersQuery dbQuery = _mapper.Map<GetUsersQuery>(query);
+
+            ICollection<User> users = await _unitOfWork.UserRepository.GetByQueryAsync(dbQuery, ct);
+
+            ICollection<UserContact> userContacts =
+                await _unitOfWork.UserContactRepository.GetUserContactsAsync(query.UserId, ct);
+
+            users = users.Where(t => userContacts.All(c => c.ContactId != t.Id)).ToList();
+
+            return _mapper.Map<ICollection<GetUserDto>>(users).ToImmutableList();
         }
 
         public async Task<GetUserDto> GetByIdAsync(string id, CancellationToken ct)
@@ -58,8 +78,8 @@ namespace OCS.BLL.Services.Users
         public async Task<GetUserDto> SetUserOnlineStatusAsync(SetUserOnlineDto userOnlineDto, CancellationToken ct = default)
         {
             _logger.LogInformation(
-                "Set online status to {OnlineStatus} for user {UserId}", 
-                userOnlineDto.IsOnline, 
+                "Set online status to {OnlineStatus} for user {UserId}",
+                userOnlineDto.IsOnline,
                 userOnlineDto.UserId);
 
             User user = await _unitOfWork.UserRepository.GetAsync(userOnlineDto.UserId, ct);

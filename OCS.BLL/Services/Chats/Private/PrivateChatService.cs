@@ -2,16 +2,18 @@
 using Microsoft.Extensions.Logging;
 using OCS.BLL.DTOs.Chats.Private;
 using OCS.BLL.Exceptions.Chats;
+using OCS.BLL.Exceptions.Users;
 using OCS.BLL.Services.Contracts.Chats.Private;
 using OCS.DAL.Entities.Chats;
+using OCS.DAL.Entities.Users;
+using OCS.DAL.Entities.Views.Chats;
 using OCS.DAL.UnitOfWorks.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using OCS.BLL.Exceptions.Users;
-using OCS.DAL.Entities.Users;
+using OCS.DAL.Queries.Chats;
 
 namespace OCS.BLL.Services.Chats.Private
 {
@@ -54,6 +56,17 @@ namespace OCS.BLL.Services.Chats.Private
             ICollection<PrivateChat> chats = await _unitOfWork.PrivateChatRepository.GetChatsByUserIdAsync(userId, ct);
 
             return _mapper.Map<ICollection<GetPrivateChatDto>>(chats).ToImmutableList();
+        }
+
+        public async Task<IImmutableList<GetPrivateChatViewDto>> GetUserPrivateChatsViewAsync(GetPrivateChatsQueryDto query, CancellationToken ct = default)
+        {
+            _logger.LogInformation("Get user private chats by user id {UserId}", query.UserId);
+
+            GetPrivateChatsQuery dbQuery = _mapper.Map<GetPrivateChatsQuery>(query);
+
+            ICollection<PrivateChatView> chats = await _unitOfWork.PrivateChatRepository.GetPrivateChatsAsync(dbQuery, ct);
+
+            return _mapper.Map<ICollection<GetPrivateChatViewDto>>(chats).ToImmutableList();
         }
 
         public async Task<GetPrivateChatDto> GetChatByIdAsync(int id, CancellationToken ct = default)

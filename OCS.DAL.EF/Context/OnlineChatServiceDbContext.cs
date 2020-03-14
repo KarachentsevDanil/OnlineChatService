@@ -4,6 +4,7 @@ using OCS.DAL.EF.Context.Mappings.Chats;
 using OCS.DAL.EF.Context.Mappings.Users;
 using OCS.DAL.Entities.Chats;
 using OCS.DAL.Entities.Users;
+using OCS.DAL.Entities.Views.Chats;
 
 namespace OCS.DAL.EF.Context
 {
@@ -25,6 +26,8 @@ namespace OCS.DAL.EF.Context
 
         public DbSet<UserGroupChat> UserGroupChats { get; set; }
 
+        public DbSet<PrivateChatView> PrivateChatsView { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -37,6 +40,7 @@ namespace OCS.DAL.EF.Context
             builder.Entity<GroupChat>().MapGroupChat();
             builder.Entity<GroupChatMessage>().MapGroupChatMessage();
             builder.Entity<UserGroupChat>().MapUserGroupChat();
+            builder.Entity<PrivateChatView>().MapPrivateChatView();
         }
     }
 }

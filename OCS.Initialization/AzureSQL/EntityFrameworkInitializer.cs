@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using OCS.Initialization.AzureSQL.Builders;
 using OCS.Initialization.AzureSQL.Constants;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace OCS.Initialization.AzureSQL
@@ -22,6 +23,9 @@ namespace OCS.Initialization.AzureSQL
                 using (T context = DbContextBuilder.Build<T>(config, migrationPath, connectionKey))
                 {
                     await context.Database.MigrateAsync();
+
+                    await context.Database.ExecuteSqlRawAsync(File.ReadAllText(AzureSqlConstants.PrivateChatView));
+
                     await context.Database.EnsureCreatedAsync();
                 }
 
