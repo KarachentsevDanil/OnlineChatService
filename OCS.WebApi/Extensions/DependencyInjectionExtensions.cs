@@ -114,11 +114,6 @@ namespace OCS.WebApi.Extensions
 
         public static IServiceCollection AddSwagger(this IServiceCollection services)
         {
-            Dictionary<string, IEnumerable<string>> security = new Dictionary<string, IEnumerable<string>>
-            {
-                {"Bearer", new string[] { }},
-            };
-
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = Assembly.GetExecutingAssembly().GetName().Name, Version = "v1" });
